@@ -1,6 +1,27 @@
 #!/usr/bin/php -q
 <?php
 require_once('autoload.php');
+function LastModifiedCompare($a, $b)
+{
+	if(filemtime($a) === filemtime($b)) return 0;
+	return filemtime($a) < filemtime($b) ? -1: 1;
+}
+
+function listdir_by_date($path)
+{
+	$dir = opendir($path);
+	$files = array();
+	while($file = readdir($dir))
+	{
+		if($file != '.' and $file != '..')
+		{
+			$files[] = $path.$file;
+		}
+	}
+	closedir($dir);
+	usort($files,'LastModifiedCompare');
+	return $files;
+}
 
 function convertBSXintoLIK($shopInfoDB,$itemInfoDB,$inventoryInfoDB,$filename = null,$shop_id)
 {
@@ -12,6 +33,7 @@ function convertBSXintoLIK($shopInfoDB,$itemInfoDB,$inventoryInfoDB,$filename = 
 		$defaultPrice = $inventoryInfoDB->GetAvgPrice($shop_id);
 	else
 		$defaultPrice = $shopInfo->min_default_price;
+	$errorArray = array();
 	$xml = simplexml_load_file($filename);
 	if($xml->Inventory->Item)
 	{
@@ -39,10 +61,19 @@ function convertBSXintoLIK($shopInfoDB,$itemInfoDB,$inventoryInfoDB,$filename = 
 					$legoType = "Minifigs";
 					break;
 				default;
+					$errorArray[] = array('ItemID'=>(string)$value->ItemID,
+							'Qty'=>(string)$value->Qty,
+							'Price'=>(string)$value->Price);
 					continue;
 			}
 			$item = $itemInfoDB->CheckItemExists($legoType,$value->ItemID);
-			if($item == null) continue;
+			if($item == null) 
+			{
+				$errorArray[] = array('ItemID'=>(string)$value->ItemID,
+						'Qty'=>(string)$value->Qty,
+						'Price'=>(string)$value->Price);
+				continue;
+			}
 			$newItem = array(
 				'shop_id'=>$shop_id,
 				'item_id'=>$item->id,
@@ -65,7 +96,6 @@ function convertBSXintoLIK($shopInfoDB,$itemInfoDB,$inventoryInfoDB,$filename = 
 				'status'=>(string)1,
 				'weight'=>$item->weight,
 			);
-			var_dump($newItem);
 			$inventoryInfoDB->InsertItem($newItem);
 			break;
 			$num++;	
@@ -77,7 +107,17 @@ $dbh = new PDO($DB['DSN'],$DB['DB_USER'], $DB['DB_PWD'],
         array( PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
         PDO::ATTR_PERSISTENT => false));
 $S3PATH = "/mnt/librick-data/inventory-import/";
+$files = listdir_by_date($S3PATH);
 $ItemInfoDB = new ItemInfo($dbh);
 $ShopInfoDB = new ShopInfo($dbh);
 $InventoryInfoDB = new InventoryInfo($dbh);
-echo convertBSXIntoLIK($ShopInfoDB,$ItemInfoDB,$InventoryInfoDB,'brickstore.bsx','recca');
+foreach($files as $file)
+{
+#	echo convertBSXIntoLIK($ShopInfoDB,$ItemInfoDB,$InventoryInfoDB,'brickstore.bsx','recca');
+	$tmpFile = str_replace($S3PATH,"",$file);
+	preg_match('/^([0-9]*)_([^_]*)_([^\.]*)\.(.*)$/',$tmpFile,$matches);
+	var_dump($matches);
+}
+unset($InventoryInfoDB);
+unset($ShopInfoDB);
+unset($ItemInfoDB);

@@ -42,7 +42,7 @@ class InventoryInfo {
 	function DeleteItem($shopID)
 	{
 		try {
-			$p = $this->dbh->prepare("delete from inventory where shop_id=:shopID");
+			$p = $this->dbh->prepare("delete inventory from inventory left join order_items on order_items.inventory_id = inventory.id where order_items.id is null and inventory.shop_id=:shopID");
 			$p->bindParam(':shopID',$shopID,PDO::PARAM_STR);
 			$p->execute();
 		} catch(PDOException $e) {
@@ -61,15 +61,15 @@ class InventoryInfo {
 				`weight`,`createtime`) values (:shop_id,:item_id,:qty,:price,:bulk_qty,:sale,:condition,
 				:note,:remark,:tier_qty1,:tier_price1,:tier_qty2,:tier_price2,:tier_qty3,:tier_price3,
 				:my_cost,:featured,:force_quote,:status,:weight,now())");
-			$p->bindValue(':note',null,PDO::PARAM_STR);
-			$p->bindValue(':remark',null,PDO::PARAM_STR);
-			$p->bindValue(':tier_qty1',null,PDO::PARAM_STR);
-			$p->bindValue(':tier_price1',null,PDO::PARAM_STR);
-			$p->bindValue(':tier_qty2',null,PDO::PARAM_STR);
-			$p->bindValue(':tier_price2',null,PDO::PARAM_STR);
-			$p->bindValue(':tier_qty3',null,PDO::PARAM_STR);
-			$p->bindValue(':tier_price3',null,PDO::PARAM_STR);
-			$p->bindValue(':my_cost',null,PDO::PARAM_STR);
+#			$p->bindValue(':note',null,PDO::PARAM_STR);
+#			$p->bindValue(':remark',null,PDO::PARAM_STR);
+#			$p->bindValue(':tier_qty1',null,PDO::PARAM_STR);
+#			$p->bindValue(':tier_price1',null,PDO::PARAM_STR);
+#			$p->bindValue(':tier_qty2',null,PDO::PARAM_STR);
+#			$p->bindValue(':tier_price2',null,PDO::PARAM_STR);
+#			$p->bindValue(':tier_qty3',null,PDO::PARAM_STR);
+#			$p->bindValue(':tier_price3',null,PDO::PARAM_STR);
+#			$p->bindValue(':my_cost',null,PDO::PARAM_STR);
 			
 			$p->execute($item);
 		} catch(PDOException $e) {
