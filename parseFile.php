@@ -220,7 +220,7 @@ function convertFileIntoDB($shopInfoDB,$itemInfoDB,$inventoryInfoDB,
 	
 	$returnArray['successAmount'] = $msgArray['successAmount'];
 	$returnArray['failData'] = $msgArray['failData'];
-	echo json_encode($returnArray);
+	#echo json_encode($returnArray);
 	WebService::PostWebService(APIURL,$returnArray);
 	rename(S3PATH.$filename,BACKUPPATH.$filename);	
 }
