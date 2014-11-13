@@ -22,5 +22,4 @@ else
 	$DB = $ini_array['STAGE_DB'];
 if(!file_exists('./log/'))
         mkdir('./log/',0777);
-
 ?>

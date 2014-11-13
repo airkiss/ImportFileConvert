@@ -1,9 +1,10 @@
 #!/usr/bin/php -q
 <?php
 require_once('autoload.php');
-define('APIURL',"http://sandbox.librick.com/remotecall/adminNotify");
+define('APIURL',"http://stage.librick.com/remotecall/adminNotify");
 define('S3PATH',"/mnt/librick-data/inventory-import/");
 define('BACKUPPATH',"/mnt/librick-data/inventory-import-backup/");
+
 function tryLock($lock_file)
 {
         if(@symlink('/proc/'.getmypid(),$lock_file) !== FALSE)
@@ -15,7 +16,6 @@ function tryLock($lock_file)
         }
         return false;
 }
-
 function CheckLock($filename)
 {
         $lock_file = '/tmp/'.basename($filename).'.lock';
@@ -46,7 +46,8 @@ function listdir_by_date($path)
 	return $files;
 }
 
-function LIKintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoDB,$filename)
+function LIKintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoDB,
+	$historyPriceDB,$filename)
 {
 	$errorArray = array();
 	$content = file_get_contents(S3PATH.$filename);
@@ -196,7 +197,7 @@ function convertFileIntoDB($shopInfoDB,$itemInfoDB,$inventoryInfoDB,
 	$returnArray['shopID'] = $shop_id;
 	$shopInfo = $shopInfoDB->GetShopInfo($shop_id);
 	if($shopInfo == null) {
-		echo json_encode($returnArray);
+		#echo json_encode($returnArray);
 		WebService::PostWebService(APIURL,$returnArray);
 		return; 
 	}
@@ -236,7 +237,7 @@ $ShopInfoDB = new ShopInfo($dbh);
 $InventoryInfoDB = new InventoryInfo($dbh);
 $HistoryPriceDB = new HistoryPrice($dbh);
 foreach($files as $file)
-{
+{	
 	convertFileIntoDB($ShopInfoDB,$ItemInfoDB,$InventoryInfoDB,$HistoryPriceDB,basename($file));
 }
 unset($HistoryPriceDB);
