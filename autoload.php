@@ -17,9 +17,9 @@ $ini_array = parse_ini_file("db.ini",true);
 $version_info = $ini_array['VERSION'];
 $debug = $version_info['DEBUG'];
 if(!$debug)
-	$DB = $ini_array['STAGE_DB'];
+	$DB = $ini_array['LIBRICK_DB'];
 else
-	$DB = $ini_array['SANDBOX_DB'];
+	$DB = $ini_array['STAGE_DB'];
 if(!file_exists('./log/'))
         mkdir('./log/',0777);
 

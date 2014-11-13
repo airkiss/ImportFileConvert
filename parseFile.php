@@ -65,7 +65,8 @@ function LIKintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 		'failData'=>$errorArray);
 }
 
-function BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoDB,$filename)
+function BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoDB,
+	$historyPriceDB,$filename)
 {
 	$errorArray = array();
 	$xml = simplexml_load_file(S3PATH.$filename);
@@ -108,6 +109,12 @@ function BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 						'Price'=>(string)$value->Price);
 				continue;
 			}
+			$condition = (isset($value->Condition) && $value->Condition == 'Y')?(string)1:(string)2;
+			$history_info = $historyPriceDB->getPrice($item->id,$condition);
+			if($history_info == null)
+				$defaultPrice = 0.01;
+			else
+				$defaultPrice = $history_info->price;
 			$newItem = array(
 				'shop_id'=>$shop_id,
 				'item_id'=>$item->id,
@@ -115,7 +122,7 @@ function BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 				'price'=>floatval($value->Price)>0?(string)$value->Price:$defaultPrice,
 				'bulk_qty'=>(isset($value->Bulk) && intval($value->Bulk) > 0)?(string)$value->Bulk:(string)1,
 				'sale'=>isset($value->Sale)?(string)$value->Sale:(string)0,
-				'condition'=>(isset($value->Condition) && $value->Condition == 'Y')?(string)1:(string)2,
+				'condition'=>$condition,
 				'note'=>isset($value->Comments)?(string)$value->Comments:NULL,
 				'remark'=>isset($value->Remarks)?(string)$value->Remarks:NULL,
 				'tier_qty1'=>isset($value->TQ1)?(string)$value->TQ1:NULL,
@@ -138,7 +145,8 @@ function BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 		'failData'=>$errorArray);
 }
 
-function convertFileIntoDB($shopInfoDB,$itemInfoDB,$inventoryInfoDB,$filename = null)
+function convertFileIntoDB($shopInfoDB,$itemInfoDB,$inventoryInfoDB,
+	$historyPriceDB,$filename = null)
 {
 	$returnArray = array('shopID'=>'',
 			'type'=>'import',
@@ -182,9 +190,9 @@ function convertFileIntoDB($shopInfoDB,$itemInfoDB,$inventoryInfoDB,$filename = 
 		$inventoryInfoDB->DeleteItem($shop_id);
 	}
 	if(strtolower($filetype) == 'bsx')
-		$msgArray = BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoDB,$filename);
+		$msgArray = BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoDB,$historyPriceDB,$filename);
 	else
-		$msgArray = LIKintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoDB,$filename);
+		$msgArray = LIKintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoDB,$historyPriceDB,$filename);
 	if($msgArray['failData'] == null or count($msgArray['failData']) == 0)
 		$returnArray['errorCode'] = 0;
 	else
@@ -205,10 +213,12 @@ $files = listdir_by_date(S3PATH);
 $ItemInfoDB = new ItemInfo($dbh);
 $ShopInfoDB = new ShopInfo($dbh);
 $InventoryInfoDB = new InventoryInfo($dbh);
+$HistoryPriceDB = new HistoryPrice($dbh);
 foreach($files as $file)
 {
-	convertFileIntoDB($ShopInfoDB,$ItemInfoDB,$InventoryInfoDB,basename($file));
+	convertFileIntoDB($ShopInfoDB,$ItemInfoDB,$InventoryInfoDB,$HistoryPriceDB,basename($file));
 }
+unset($HistoryPriceDB);
 unset($InventoryInfoDB);
 unset($ShopInfoDB);
 unset($ItemInfoDB);

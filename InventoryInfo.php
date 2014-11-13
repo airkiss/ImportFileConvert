@@ -58,9 +58,9 @@ class InventoryInfo {
 			$p = $this->dbh->prepare("insert into `inventory` (`shop_id`,`item_id`,`qty`,`price`,
 				`bulk_qty`,`sale`,`condition`,`note`,`remark`,`tier_qty1`,`tier_price1`,`tier_qty2`,
 				`tier_price2`,`tier_qty3`,`tier_price3`,`my_cost`,`featured`,`force_quote`,`status`,
-				`weight`,`createtime`) values (:shop_id,:item_id,:qty,:price,:bulk_qty,:sale,:condition,
+				`weight`,`createtime`,'modtime') values (:shop_id,:item_id,:qty,:price,:bulk_qty,:sale,:condition,
 				:note,:remark,:tier_qty1,:tier_price1,:tier_qty2,:tier_price2,:tier_qty3,:tier_price3,
-				:my_cost,:featured,:force_quote,:status,:weight,unix_timestamp(now()))");
+				:my_cost,:featured,:force_quote,:status,:weight,unix_timestamp(now()),unix_timestamp(now()))");
 #			$p->bindValue(':note',null,PDO::PARAM_STR);
 #			$p->bindValue(':remark',null,PDO::PARAM_STR);
 #			$p->bindValue(':tier_qty1',null,PDO::PARAM_STR);
