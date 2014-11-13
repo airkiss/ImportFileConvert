@@ -4,6 +4,26 @@ require_once('autoload.php');
 define('APIURL',"http://sandbox.librick.com/remotecall/adminNotify");
 define('S3PATH',"/mnt/librick-data/inventory-import/");
 define('BACKUPPATH',"/mnt/librick-data/inventory-import-backup/");
+function tryLock($lock_file)
+{
+        if(@symlink('/proc/'.getmypid(),$lock_file) !== FALSE)
+                return true;
+        if(is_link($lock_file) && !is_dir($lock_file))
+        {
+                unlink($lock_file);
+                return tryLock($lock_file);
+        }
+        return false;
+}
+
+function CheckLock($filename)
+{
+        $lock_file = '/tmp/'.basename($filename).'.lock';
+        if(!tryLock($lock_file))
+                die(basename($filename).' is running'."\n");
+        register_shutdown_function('unlink',$lock_file);
+}
+
 function LastModifiedCompare($a, $b)
 {
 	if(filemtime($a) === filemtime($b)) return 0;
@@ -112,7 +132,7 @@ function BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 			$condition = (isset($value->Condition) && $value->Condition == 'Y')?(string)1:(string)2;
 			$history_info = $historyPriceDB->getPrice($item->id,$condition);
 			if($history_info == null)
-				$defaultPrice = 0.01;
+				$defaultPrice = "0.01";
 			else
 				$defaultPrice = $history_info->price;
 			$newItem = array(
@@ -205,6 +225,7 @@ function convertFileIntoDB($shopInfoDB,$itemInfoDB,$inventoryInfoDB,
 	rename(S3PATH.$filename,BACKUPPATH.$filename);	
 }
 
+CheckLock($argv[0]);
 $dbh = new PDO($DB['DSN'],$DB['DB_USER'], $DB['DB_PWD'],
         array( PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
         PDO::ATTR_PERSISTENT => false));
