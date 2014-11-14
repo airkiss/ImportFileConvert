@@ -1,10 +1,9 @@
 #!/usr/bin/php -q
 <?php
 require_once('autoload.php');
-define('APIURL',"http://stage.librick.com/remotecall/adminNotify");
-define('S3PATH',"/mnt/librick-data/inventory-import/");
-define('BACKUPPATH',"/mnt/librick-data/inventory-import-backup/");
-
+define('APIURL',$DB['APIURL']);
+define('S3PATH',$DB['S3PATH']);
+define('BACKUPPATH',$DB['BACKUPPATH']);
 function tryLock($lock_file)
 {
         if(@symlink('/proc/'.getmypid(),$lock_file) !== FALSE)
@@ -230,7 +229,6 @@ CheckLock($argv[0]);
 $dbh = new PDO($DB['DSN'],$DB['DB_USER'], $DB['DB_PWD'],
         array( PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
         PDO::ATTR_PERSISTENT => false));
-#$BACKPATH = "/mnt/librick-data/inventory-import-backup/";
 $files = listdir_by_date(S3PATH);
 $ItemInfoDB = new ItemInfo($dbh);
 $ShopInfoDB = new ShopInfo($dbh);

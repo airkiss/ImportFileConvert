@@ -6,6 +6,7 @@ class WebService {
 		curl_setopt($link,CURLOPT_URL,$url);
 		curl_setopt($link,CURLOPT_VERBOSE,0);
 		curl_setopt($link,CURLOPT_HEADER,0);
+		curl_setopt($link,CURLOPT_SSL_VERIFYPEER, TRUE );
 		curl_setopt($link,CURLOPT_RETURNTRANSFER,true);
 		curl_setopt($link,CURLOPT_TIMEOUT,5);
 		if($postField != null)
