@@ -55,6 +55,30 @@ function LIKintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 	//determine the lik is object or not
 	foreach($lik as $key => $value)
 	{
+		$item = $itemInfoDB->CheckItemID($value->item_id);
+		if($item == null) 
+		{
+			$errorArray[] = (object)array('ItemID'=>(string)$value->item_id,
+					'Qty'=>(string)$value->qty,
+					'Price'=>(string)$value->price);
+			continue;
+		}
+		switch($item->item_type)
+		{
+			case "Sets":
+			case "Gears":
+				if($value->condition >=1 &&  $value->condition <= 5)
+					$condition = $value->condition;
+				else
+					$condition = 2;
+				break;
+			default:
+				if($value->condition >=2 && $value->condition <= 5)
+					$condition = $value->condition;
+				else
+					$condition = 2;
+				break;
+		}	
 		$newItem = array(
 			'shop_id'=>$shop_id,
 			'item_id'=>$value->item_id,
@@ -62,7 +86,7 @@ function LIKintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 			'price'=>floatval($value->price)>0?$value->price:$defaultPrice,
 			'bulk_qty'=>intval($value->bulk_qty)>0?$value->bulk_qty:1,
 			'sale'=>$value->sale,
-			'condition'=>$value->condition,
+			'condition'=>$condition,
 			'note'=>$value->note,
 			'remark'=>$value->remark,
 			'tier_qty1'=>$value->tier_qty1,
@@ -129,7 +153,7 @@ function BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 						'Price'=>(string)$value->Price);
 				continue;
 			}
-			$condition = (isset($value->Condition) && $value->Condition == 'Y')?(string)1:(string)2;
+			$condition = (isset($value->Condition) && $value->Condition == 'Y')?(string)2:(string)4;
 			$history_info = $historyPriceDB->getPrice($item->id,$condition);
 			if($history_info == null)
 				$defaultPrice = "0.01";
