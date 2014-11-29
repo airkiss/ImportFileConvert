@@ -145,7 +145,10 @@ function BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 							'Price'=>(string)$value->Price);
 					continue;
 			}
-			$item = $itemInfoDB->CheckItemExists($legoType,$value->ItemID);
+			if($legoType == "Parts")
+				$item = $itemInfoDB->CheckItemExists($legoType,$value->ItemID,$value->ColorID);
+			else
+				$item = $itemInfoDB->CheckItemExists($legoType,$value->ItemID);
 			if($item == null) 
 			{
 				$errorArray[] = (object)array('ItemID'=>(string)$value->ItemID,

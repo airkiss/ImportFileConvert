@@ -19,7 +19,7 @@ class ItemInfo {
 	function CheckItemID($item_id)
 	{
 		try {
-			$p = $this->dbh->prepare("select * from item_info_en where id=:id");
+			$p = $this->dbh->prepare("select * from item_info where id=:id");
 			$p->bindParam(':id',$item_id,PDO::PARAM_STR);
 			$p->execute();
 			if($p->rowCount() == 0)
@@ -32,16 +32,28 @@ class ItemInfo {
 		}
 	}
 
-	function CheckItemExists($itemType,$brickLinkId)
+	function CheckItemExists($itemType,$brickLinkId,$colorID=null)
 	{
 		try {
-			$p = $this->dbh->prepare("select * from item_info_en where item_type=:item_type and bricklink=:bricklink");
+			$p = $this->dbh->prepare("select * from item_info where item_type=:item_type and bricklink=:bricklink");
 			$p->bindParam(':item_type',$itemType,PDO::PARAM_STR);
 			$p->bindParam(':bricklink',$brickLinkId,PDO::PARAM_STR);
 			$p->execute();
 			if($p->rowCount() == 0)
 				return null;
-			return $p->fetch(PDO::FETCH_OBJ);
+			if($colorID != null)
+			{
+				$resData = $p->fetch(PDO::FETCH_OBJ);
+				$librick_id = $resData->linker ."_". $colorID;
+				$p2 = $this->dbh->prepare("select * from item_info where id=:id");
+				$p2->bindParam(':id',$librick_id);
+				$p2->execute();
+				if($p2->rowCount() == 0)
+					return null;
+				return $p2->fetch(PDO::FETCH_OBJ);
+			}
+			else
+				return $p->fetch(PDO::FETCH_OBJ);
 		} catch(PDOException $e) {
 			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n",3,"./log/ItemInfo.txt");
 			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n");
