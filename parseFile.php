@@ -22,6 +22,7 @@ function CheckLock($filename)
 	{
 		error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.basename($filename).' is running'."\n",3,"./log/log.txt");
 		error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.basename($filename).' is running'."\n");
+		exit;
 	}
         register_shutdown_function('unlink',$lock_file);
 }
@@ -159,7 +160,7 @@ function BSXintoDB($shop_id,$defaultPrice,$timestamp,$itemInfoDB,$inventoryInfoD
 						'Price'=>(string)$value->Price);
 				continue;
 			}
-			$condition = (isset($value->Condition) && $value->Condition == 'Y')?(string)2:(string)4;
+			$condition = (isset($value->Condition) && $value->Condition == 'N')?(string)2:(string)4;
 			$history_info = $historyPriceDB->getPrice($item->id,$condition);
 			if($history_info == null)
 				$defaultPrice = "0.01";
