@@ -19,7 +19,10 @@ function CheckLock($filename)
 {
         $lock_file = '/tmp/'.basename($filename).'.lock';
         if(!tryLock($lock_file))
-                die(basename($filename).' is running'."\n");
+	{
+		error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.basename($filename).' is running'."\n",3,"./log/log.txt");
+		error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.basename($filename).' is running'."\n");
+	}
         register_shutdown_function('unlink',$lock_file);
 }
 
@@ -263,7 +266,11 @@ $InventoryInfoDB = new InventoryInfo($dbh);
 $HistoryPriceDB = new HistoryPrice($dbh);
 foreach($files as $file)
 {	
+	error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' is running'."\n",3,"./log/log.txt");
+	error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' is running'."\n");
 	convertFileIntoDB($ShopInfoDB,$ItemInfoDB,$InventoryInfoDB,$HistoryPriceDB,basename($file));
+	error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' has finished'."\n",3,"./log/log.txt");
+	error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' has finished'."\n");
 }
 unset($HistoryPriceDB);
 unset($InventoryInfoDB);
