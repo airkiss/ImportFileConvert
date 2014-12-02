@@ -1,6 +1,8 @@
 <?php
 class ItemInfo {
 	private $dbh = null;
+	private $p1 = null;
+	private $p2 = null;
 	function __construct($dbh)
 	{
 		$this->dbh = $dbh;
@@ -9,6 +11,8 @@ class ItemInfo {
 //					PDO::ATTR_PERSISTENT => false));
 		# 錯誤的話, 就不做了
 		$this->dbh->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+		$this->p1 = $this->dbh->prepare("select * from item_info where id=:id");
+		$this->p2 = $this->dbh->prepare("select * from item_info where item_type=:item_type and bricklink=:bricklink");
 	}
 
 	function __destruct()
@@ -19,12 +23,11 @@ class ItemInfo {
 	function CheckItemID($item_id)
 	{
 		try {
-			$p = $this->dbh->prepare("select * from item_info where id=:id");
-			$p->bindParam(':id',$item_id,PDO::PARAM_STR);
-			$p->execute();
-			if($p->rowCount() == 0)
+			$this->p1->bindParam(':id',$item_id,PDO::PARAM_STR);
+			$this->p1->execute();
+			if($this->p1->rowCount() == 0)
 				return null;
-			return $p->fetch(PDO::FETCH_OBJ);
+			return $this->p1->fetch(PDO::FETCH_OBJ);
 		} catch(PDOException $e) {
 			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n",3,"./log/ItemInfo.txt");
 			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n");
@@ -35,25 +38,23 @@ class ItemInfo {
 	function CheckItemExists($itemType,$brickLinkId,$colorID=null)
 	{
 		try {
-			$p = $this->dbh->prepare("select * from item_info where item_type=:item_type and bricklink=:bricklink");
-			$p->bindParam(':item_type',$itemType,PDO::PARAM_STR);
-			$p->bindParam(':bricklink',$brickLinkId,PDO::PARAM_STR);
-			$p->execute();
-			if($p->rowCount() == 0)
+			$this->p2->bindParam(':item_type',$itemType,PDO::PARAM_STR);
+			$this->p2->bindParam(':bricklink',$brickLinkId,PDO::PARAM_STR);
+			$this->p2->execute();
+			if($this->p2->rowCount() == 0)
 				return null;
 			if($colorID != null)
 			{
-				$resData = $p->fetch(PDO::FETCH_OBJ);
+				$resData = $this->p2->fetch(PDO::FETCH_OBJ);
 				$librick_id = $resData->linker ."_". $colorID;
-				$p2 = $this->dbh->prepare("select * from item_info where id=:id");
-				$p2->bindParam(':id',$librick_id);
-				$p2->execute();
-				if($p2->rowCount() == 0)
+				$this->p1->bindParam(':id',$librick_id);
+				$this->p1->execute();
+				if($this->p1->rowCount() == 0)
 					return null;
-				return $p2->fetch(PDO::FETCH_OBJ);
+				return $this->p1->fetch(PDO::FETCH_OBJ);
 			}
 			else
-				return $p->fetch(PDO::FETCH_OBJ);
+				return $this->p2->fetch(PDO::FETCH_OBJ);
 		} catch(PDOException $e) {
 			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n",3,"./log/ItemInfo.txt");
 			error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' Error: ('.$e->getLine().') ' . $e->getMessage()."\n");

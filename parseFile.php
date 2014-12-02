@@ -21,7 +21,7 @@ function CheckLock($filename)
         if(!tryLock($lock_file))
 	{
 		error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.basename($filename).' is running'."\n",3,"./log/log.txt");
-		error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.basename($filename).' is running'."\n");
+		#error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.basename($filename).' is running'."\n");
 		exit;
 	}
         register_shutdown_function('unlink',$lock_file);
@@ -259,7 +259,7 @@ function convertFileIntoDB($shopInfoDB,$itemInfoDB,$inventoryInfoDB,
 CheckLock($argv[0]);
 $dbh = new PDO($DB['DSN'],$DB['DB_USER'], $DB['DB_PWD'],
         array( PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
-        PDO::ATTR_PERSISTENT => false));
+        PDO::ATTR_PERSISTENT => true));
 $files = listdir_by_date(S3PATH);
 $ItemInfoDB = new ItemInfo($dbh);
 $ShopInfoDB = new ShopInfo($dbh);
@@ -268,10 +268,10 @@ $HistoryPriceDB = new HistoryPrice($dbh);
 foreach($files as $file)
 {	
 	error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' is running'."\n",3,"./log/log.txt");
-	error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' is running'."\n");
+	#error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' is running'."\n");
 	convertFileIntoDB($ShopInfoDB,$ItemInfoDB,$InventoryInfoDB,$HistoryPriceDB,basename($file));
 	error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' has finished'."\n",3,"./log/log.txt");
-	error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' has finished'."\n");
+	#error_log('['.date('Y-m-d H:i:s').'] '.__METHOD__.' '.$file.' has finished'."\n");
 }
 unset($HistoryPriceDB);
 unset($InventoryInfoDB);
